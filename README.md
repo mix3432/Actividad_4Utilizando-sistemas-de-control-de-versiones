@@ -13,11 +13,11 @@ Este proyecto demuestra la efectividad de una arquitectura basada en cliente par
 
 1. Clona el repositorio:
     ```bash
-    git clone https://github.com/mix3432/Actividad_4_Desarrollo_arquitectura_basada_cliente.git
+    git clone Actividad_4Utilizando-sistemas-de-control-de-versiones.git
     ```
 2. Navega al directorio del proyecto:
     ```bash
-    cd Actividad_4_Desarrollo_arquitectura_basada_cliente
+    cd Actividad_4Utilizando sistemas de control de versiones
     ```
 3. Instala las dependencias:
     ```bash
@@ -45,6 +45,4 @@ Este ejercicio no solo ofrece una comprensión práctica de cómo desarrollar ap
 
 ## Integrantes
 
-- [Juan Diaz - 100160393](https://github.com/juandiazmoya)
 - [Michel Vega - 10061117](https://github.com/mix3432)
-- [Jhon Sánchez - 100122743](https://github.com/Alexsanchez-WP)

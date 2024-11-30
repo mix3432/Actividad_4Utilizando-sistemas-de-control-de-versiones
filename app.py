@@ -1,3 +1,42 @@
+from tkinter import *
+from tkinter import messagebox
+import requests
+
+# Función para cancelar una reserva
+def cancelar_reserva():
+    id_reserva = entry_id_reserva.get()  # Obtener el ID de la reserva ingresado por el usuario
+
+    if not id_reserva:
+        messagebox.showerror("Error", "Por favor ingrese un ID de reserva válido")
+        return
+
+    # Confirmación antes de cancelar
+    if messagebox.askyesno("Confirmar", f"¿Estás seguro de cancelar la reserva con ID {id_reserva}?"):
+        response = requests.delete(f"http://127.0.0.1:5000/reservas/{id_reserva}")
+        if response.status_code == 200:
+            messagebox.showinfo("Éxito", "Reserva cancelada correctamente")
+        else:
+            messagebox.showerror("Error", "No se pudo cancelar la reserva")
+    else:
+        messagebox.showinfo("Cancelado", "La operación de cancelación ha sido anulada")
+
+# Interfaz gráfica de Tkinter
+root = Tk()
+root.title("Gestión de Reservas")
+
+# Etiqueta e input para el ID de la reserva
+label_id_reserva = Label(root, text="ID de la Reserva:")
+label_id_reserva.pack()
+entry_id_reserva = Entry(root)
+entry_id_reserva.pack()
+
+# Botón para cancelar la reserva
+btn_cancelar = Button(root, text="Cancelar Reserva", command=cancelar_reserva)
+btn_cancelar.pack()
+
+# Iniciar la interfaz gráfica
+root.mainloop()
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import smtplib  # Para enviar correos electrónicos
@@ -98,7 +137,26 @@ def create_reservation(user_name, court_name, date, time):
         db.session.commit()
         messagebox.showinfo("Éxito", "¡Reserva creada con éxito!")
 
+@app.route('/reservas', methods=['GET'])
+def consultar_reservas():
+    cancha = request.args.get('cancha')
+    fecha = request.args.get('fecha')
 
+    # Filtros dinámicos
+    query = Reserva.query
+    if cancha:
+        query = query.filter_by(cancha=cancha)
+    if fecha:
+        query = query.filter_by(fecha=fecha)
+
+    reservas = query.all()
+    return jsonify([{
+        "id": reserva.id,
+        "nombre_usuario": reserva.nombre_usuario,
+        "cancha": reserva.cancha,
+        "fecha": reserva.fecha,
+        "hora": reserva.hora
+    } for reserva in reservas])
 # Función para cargar y mostrar las reservas existentes
 def load_reservations():
     """
@@ -187,3 +245,14 @@ tk.Button(
 
 # Ejecutar el bucle principal de tkinter
 root.mainloop()
+@app.route('/reservas/<int:id>', methods=['DELETE'])
+def cancelar_reserva(id):
+    # Buscar la reserva por ID
+    reserva = Reserva.query.get_or_404(id)
+
+    # Eliminar la reserva de la base de datos
+    db.session.delete(reserva)
+    db.session.commit()
+
+    # Mensaje de confirmación
+    return jsonify({"message": f"Reserva con ID {id} cancelada correctamente"}), 200

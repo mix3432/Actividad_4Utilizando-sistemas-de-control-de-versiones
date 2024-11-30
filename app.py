@@ -1,4 +1,49 @@
-import re
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+import smtplib  # Para enviar correos electrónicos
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reservas.db'
+db = SQLAlchemy(app)
+
+# Modelo de Reserva
+class Reserva(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_usuario = db.Column(db.String(100), nullable=False)
+    cancha = db.Column(db.String(50), nullable=False)
+    fecha = db.Column(db.String(50), nullable=False)
+    hora = db.Column(db.String(50), nullable=False)
+
+db.create_all()
+
+# Ruta para registrar reservas
+@app.route('/reservas', methods=['POST'])
+def registrar_reserva():
+    data = request.get_json()
+    nueva_reserva = Reserva(
+        nombre_usuario=data['nombre_usuario'],
+        cancha=data['cancha'],
+        fecha=data['fecha'],
+        hora=data['hora']
+    )
+    db.session.add(nueva_reserva)
+    db.session.commit()
+
+    # Confirmación por correo (opcional)
+    enviar_confirmacion_correo(data['nombre_usuario'], data['cancha'], data['fecha'], data['hora'])
+
+    return jsonify({"message": "Reserva registrada exitosamente"}), 201
+
+def enviar_confirmacion_correo(nombre, cancha, fecha, hora):
+    try:
+        servidor = smtplib.SMTP('smtp.gmail.com', 587)
+        servidor.starttls()
+        servidor.login("tu_correo@gmail.com", "tu_password")
+        mensaje = f"Hola {nombre}, tu reserva para la cancha {cancha} el día {fecha} a las {hora} ha sido confirmada."
+        servidor.sendmail("tu_correo@gmail.com", "correo_usuario@gmail.com", mensaje)
+        servidor.quit()
+    except Exception as e:
+        print("Error al enviar correo:", e)
 
 from flask import Flask
 import tkinter as tk
